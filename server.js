@@ -74,7 +74,7 @@ app.post('/vote', async (req, res) => {
 
 // ✅ 前端 SPA routing fallback（Render 需要）
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname,'public', 'index.html'));
 });
 
 // ✅ 啟動伺服器
