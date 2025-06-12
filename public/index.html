@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <title>投票統整系統</title>
-</head>
   <style>
-    body{
+    body {
       margin: 0;
       font-family: "Microsoft JhengHei", sans-serif;
       background: url('https://fupo.tw/wp-content/uploads/2022/06/%E6%98%9F%E6%98%9F%E9%83%A8%E8%90%BD%E6%99%AF%E8%A7%80%E5%92%96%E5%95%A1-02904.jpg') no-repeat center center fixed;
       background-size: cover;
     }  
-    h1{
+    h1 {
       color: #c8bbbb;
       text-align: center;
     }
@@ -41,6 +40,7 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       font-size: 20px;
     }
+
     .results-table {
       margin: 0 auto;
       font-size: 18px;
@@ -54,53 +54,61 @@
       margin-top: 10px;
       padding: 8px 16px;
       font-size: 15px;
+      cursor: pointer;
     }
 
     #status {
       margin-top: 10px;
       color: green;
     }
-
   </style>
-  <body>
+</head>
+<body>
   <div class="overlay">
-  <h1>你最喜歡的景點</h1>
+    <h1>你最喜歡的景點</h1>
     <div class="container">
-    <div class="vote-box">
-    <input type="radio" name="vote" value="三仙台"> 三仙台<br>
-    <input type="radio" name="vote" value="伯朗大道"> 伯朗大道<br>
-    <input type="radio" name="vote" value="知本溫泉"> 知本溫泉<br>
-    <button onclick="submitVote()">投票</button>
-      <p id="status"></p>
-      
-    <div class="results">
-  <h2 style="text-align: center; color: #333;">投票結果</h2>
-  <table class="results-table">
-    <tr>
-      <td>三仙台：</td>
-      <td><span id="三仙台">0</span> 票</td>
-    </tr>
-    <tr>
-      <td>伯朗大道：</td>
-      <td><span id="伯朗大道">0</span> 票</td>
-    </tr>
-    <tr>
-      <td>知本溫泉：</td>
-      <td><span id="知本溫泉">0</span> 票</td>
-    </tr>
-  </table>
-</div>
-  </div>
+      <div class="vote-box">
+        <input type="radio" name="vote" value="三仙台"> 三仙台<br>
+        <input type="radio" name="vote" value="伯朗大道"> 伯朗大道<br>
+        <input type="radio" name="vote" value="知本溫泉"> 知本溫泉<br>
+        <button onclick="submitVote()">投票</button>
+        <p id="status"></p>
+
+        <div class="results">
+          <h2 style="text-align: center; color: #333;">投票結果</h2>
+          <table class="results-table">
+            <tr>
+              <td>三仙台：</td>
+              <td><span id="三仙台">0</span> 票</td>
+            </tr>
+            <tr>
+              <td>伯朗大道：</td>
+              <td><span id="伯朗大道">0</span> 票</td>
+            </tr>
+            <tr>
+              <td>知本溫泉：</td>
+              <td><span id="知本溫泉">0</span> 票</td>
+            </tr>
+          </table>
+        </div>
+      </div>
     </div>
   </div>
 
   <script>
+    const API_URL = 'https://voting-system666-1.onrender.com';
+
     async function fetchResults() {
-      const res = await fetch('http://localhost:3000/votes');
-      const data = await res.json();
-      document.getElementById('三仙台').textContent = data['三仙台'];
-      document.getElementById('伯朗大道').textContent = data['伯朗大道'];
-      document.getElementById('知本溫泉').textContent = data['知本溫泉'];
+      try {
+        const res = await fetch(`${API_URL}/votes`);
+        const data = await res.json();
+        document.getElementById('三仙台').textContent = data['三仙台'] || 0;
+        document.getElementById('伯朗大道').textContent = data['伯朗大道'] || 0;
+        document.getElementById('知本溫泉').textContent = data['知本溫泉'] || 0;
+      } catch (error) {
+        console.error('載入票數失敗', error);
+        document.getElementById('status').textContent = '載入票數失敗，請稍後再試';
+      }
     }
 
     async function submitVote() {
@@ -113,21 +121,32 @@
         }
       }
 
-      if (selectedValue) {
-        await fetch('http://localhost:3000/vote', {
-         method: 'POST',
+      if (!selectedValue) {
+        alert('請先選擇一個選項！');
+        return;
+      }
+
+      try {
+        const res = await fetch(`${API_URL}/vote`, {
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ option: selectedValue })
         });
-        fetchResults();
-      } else {
-        alert('請先選擇一個選項！');
+        const result = await res.json();
+        if (result.success) {
+          document.getElementById('status').textContent = '投票成功！';
+          fetchResults();
+        } else {
+          document.getElementById('status').textContent = '投票失敗：' + result.message;
+        }
+      } catch (error) {
+        console.error('投票失敗', error);
+        document.getElementById('status').textContent = '投票失敗，請稍後再試';
       }
     }
 
-    // 初始載入票數
+    // 頁面載入時取得票數
     fetchResults();
   </script>
-    </div>  
 </body>
 </html>
