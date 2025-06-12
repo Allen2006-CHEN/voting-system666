@@ -7,7 +7,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // 載入 Firebase Admin 金鑰
-const serviceAccount = require('./serviceAccountKey.json'); // ⚠️ 請記得 .gitignore 此檔案
+let serviceAccount;
+if (process.env.GOOGLE_CREDENTIALS) {
+  // ✅ 雲端環境從環境變數讀取（Render）
+  serviceAccount = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+} else {
+  // ✅ 本地環境從檔案讀取
+  serviceAccount = require('./serviceAccountKey.json');
+}
 
 // 初始化 Firebase
 admin.initializeApp({
